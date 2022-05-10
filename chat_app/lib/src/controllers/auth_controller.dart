@@ -29,7 +29,6 @@ class AuthController with ChangeNotifier {
   }
 
   handleAuthUserChanges(User? event) {
-    notifyListeners();
     ///if no user exists, pop everything and show the AuthScreen
     if (event == null) {
       print('no logged in user');
@@ -42,6 +41,7 @@ class AuthController with ChangeNotifier {
       print(event.email);
       nav.pushReplacementNamed(HomeScreen.route);
     }
+    error = null;
     working = false;
     currentUser = event;
     notifyListeners();

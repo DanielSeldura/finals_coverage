@@ -68,7 +68,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.all(16),
-                                        child: Text(prompts),
+                                        child: Text(_authController.error?.message??''),
                                       ),
                                       TextFormField(
                                         decoration: const InputDecoration(
@@ -108,11 +108,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                                             ?.validate() ??
                                                         false)
                                                     ? () {
-                                                        // String result = _auth.register(
-                                                        //     _unCon.text, _passCon.text);
-                                                        setState(() {
-                                                          // prompts = result;
-                                                        });
+                                                        _authController.register(email: _unCon.text.trim(), password: _passCon.text.trim());
                                                       }
                                                     : null,
                                                 style: ElevatedButton.styleFrom(
