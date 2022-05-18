@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:chat_app/src/controllers/navigation/navigation_service.dart';
+import 'package:chat_app/src/models/chat_user_model.dart';
 import 'package:chat_app/src/screens/authentication/auth_screen.dart';
 import 'package:chat_app/src/screens/home/home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -35,6 +37,7 @@ class AuthController with ChangeNotifier {
       nav.popUntilFirst();
       nav.pushReplacementNamed(AuthScreen.route);
     }
+
     ///if a user exists, redirect to home immediately
     if (event != null) {
       print('logged in user');
@@ -53,6 +56,7 @@ class AuthController with ChangeNotifier {
       notifyListeners();
       UserCredential? result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
+
       ///there is no 'working=false' here as the handleAuthUserChanges does that for us
       return result;
     } on FirebaseAuthException catch (e) {
@@ -65,10 +69,31 @@ class AuthController with ChangeNotifier {
     }
   }
 
-  Future<UserCredential?> register(
-      {required String email, required String password}) async {
-    return await _auth.createUserWithEmailAndPassword(
-        email: email, password: password);
+  Future register(
+      {required String email,
+      required String password,
+      required String username}) async {
+    try {
+      working = true;
+      notifyListeners();
+      UserCredential createdUser = await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+      if (createdUser.user != null) {
+        ChatUser userModel = ChatUser(createdUser.user!.uid, username, email,
+            '', Timestamp.now(), Timestamp.now());
+        return FirebaseFirestore.instance
+            .collection('users')
+            .doc(userModel.uid)
+            .set(userModel.json);
+      }
+    } on FirebaseAuthException catch (e) {
+      print(e.message);
+      print(e.code);
+      working = false;
+      currentUser = null;
+      error = e;
+      notifyListeners();
+    }
   }
 
   Future logout() async {
