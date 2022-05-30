@@ -32,7 +32,7 @@ class _AuthScreenState extends State<AuthScreen> {
     super.initState();
   }
 
-  handleLogin() {
+  handleLogin() async {
     if (_authController.currentUser != null) {
       locator<NavigationService>().pushReplacementNamed(HomeScreen.route);
     }

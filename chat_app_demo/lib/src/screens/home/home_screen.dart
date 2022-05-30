@@ -1,5 +1,7 @@
 import 'package:chat_app_demo/src/controllers/chat_controller.dart';
 import 'package:chat_app_demo/src/models/chat_user_model.dart';
+import 'package:chat_app_demo/src/services/image_service.dart';
+import 'package:chat_app_demo/src/widgets/avatars.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_moment/simple_moment.dart';
@@ -60,12 +62,50 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(user != null ? user!.username : '. . .'),
         actions: [
-          IconButton(
+          Builder(builder: (context) {
+            return IconButton(
               onPressed: () async {
+                Scaffold.of(context).openEndDrawer();
+              },
+              icon: const Icon(Icons.menu),
+            );
+          }),
+        ],
+      ),
+      endDrawer: Drawer(
+        child: Column(
+          children: [
+            DrawerHeader(
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () {ImageService.updateProfileImage();},
+                    child: AvatarImage(
+                        uid: FirebaseAuth.instance.currentUser!.uid),
+                  ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  UserNameFromDB(uid: FirebaseAuth.instance.currentUser!.uid)
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+                children: const [
+                  Text('Content'),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout_sharp),
+              title: const Text('Log out'),
+              onTap: () async {
                 _auth.logout();
               },
-              icon: const Icon(Icons.logout)),
-        ],
+            )
+          ],
+        ),
       ),
       body: SizedBox(
         height: MediaQuery.of(context).size.height,
@@ -171,17 +211,19 @@ class ChatCard extends StatelessWidget {
                               ? MainAxisAlignment.start
                               : MainAxisAlignment.end,
                       children: [
-                        FutureBuilder<ChatUser>(
-                            future: ChatUser.fromUid(uid: chat.sentBy),
-                            builder: (context, AsyncSnapshot<ChatUser> snap) {
-                              if (snap.hasData) {
-                                return Text(chat.sentBy ==
-                                        FirebaseAuth.instance.currentUser?.uid
-                                    ? 'You'
-                                    : '${snap.data?.username}');
-                              }
-                              return const Text('Getting user...');
-                            }),
+                        if (chat.sentBy !=
+                            FirebaseAuth.instance.currentUser?.uid)
+                          AvatarImage(uid: chat.sentBy, radius: 12,),
+                        if (chat.sentBy !=
+                            FirebaseAuth.instance.currentUser?.uid)
+                          const SizedBox(
+                            width: 8,
+                          ),
+                        if (chat.sentBy ==
+                            FirebaseAuth.instance.currentUser?.uid)
+                          const Text('You')
+                        else
+                          UserNameFromDB(uid: chat.sentBy),
                       ],
                     ),
                   ),
@@ -217,6 +259,8 @@ class ChatCard extends StatelessWidget {
                         const Text(
                           'Seen by',
                           style: TextStyle(fontSize: 10),
+                        ), const SizedBox(
+                          height: 8,
                         ),
                         Row(
                           mainAxisAlignment: chat.sentBy ==
@@ -224,27 +268,29 @@ class ChatCard extends StatelessWidget {
                               ? MainAxisAlignment.end
                               : MainAxisAlignment.start,
                           children: [
-                            for (int i = 0; i < chat.seenBy.length; i++)
-                              if (chat.seenBy[i] ==
-                                  FirebaseAuth.instance.currentUser!.uid)
-                                Text(
-                                  'You${i != chat.seenBy.length - 1 ? ', ' : ''}',
-                                  style: const TextStyle(fontSize: 10),
-                                )
-                              else
-                                FutureBuilder(
-                                    future:
-                                        ChatUser.fromUid(uid: chat.seenBy[i]),
-                                    builder: (context,
-                                        AsyncSnapshot<ChatUser> snap) {
-                                      if (snap.hasData) {
-                                        return Text(
-                                          '${snap.data?.username}${i != chat.seenBy.length - 1 ? ', ' : ''}',
-                                          style: const TextStyle(fontSize: 10),
-                                        );
-                                      }
-                                      return const Text('');
-                                    }),
+                            for(String user in chat.seenBy)
+                              Container(margin: const EdgeInsets.symmetric(horizontal: 2),child: AvatarImage(uid: user, radius: 8,))
+                            // for (int i = 0; i < chat.seenBy.length; i++)
+                            //   if (chat.seenBy[i] ==
+                            //       FirebaseAuth.instance.currentUser!.uid)
+                            //     Text(
+                            //       'You${i != chat.seenBy.length - 1 ? ', ' : ''}',
+                            //       style: const TextStyle(fontSize: 10),
+                            //     )
+                            //   else
+                            //     FutureBuilder(
+                            //         future:
+                            //             ChatUser.fromUid(uid: chat.seenBy[i]),
+                            //         builder: (context,
+                            //             AsyncSnapshot<ChatUser> snap) {
+                            //           if (snap.hasData) {
+                            //             return Text(
+                            //               '${snap.data?.username}${i != chat.seenBy.length - 1 ? ', ' : ''}',
+                            //               style: const TextStyle(fontSize: 10),
+                            //             );
+                            //           }
+                            //           return const Text('');
+                            //         }),
                           ],
                         ),
                         if (chat.sentBy ==
@@ -263,10 +309,11 @@ class ChatCard extends StatelessWidget {
                               ),
                               InkWell(
                                 onTap: () {
-                                  showDialog(context: context, builder: (dCon){
-                                    return ChatEditingDialog(chat: chat);
-                                  });
-
+                                  showDialog(
+                                      context: context,
+                                      builder: (dCon) {
+                                        return ChatEditingDialog(chat: chat);
+                                      });
                                 },
                                 child: const Icon(
                                   Icons.edit,
@@ -306,7 +353,7 @@ class ChatCard extends StatelessWidget {
 
 class ChatEditingDialog extends StatefulWidget {
   final ChatMessage chat;
-  const ChatEditingDialog({required this.chat,Key? key}) : super(key: key);
+  const ChatEditingDialog({required this.chat, Key? key}) : super(key: key);
 
   @override
   State<ChatEditingDialog> createState() => _ChatEditingDialogState();
@@ -315,7 +362,7 @@ class ChatEditingDialog extends StatefulWidget {
 class _ChatEditingDialogState extends State<ChatEditingDialog> {
   late TextEditingController tCon;
   @override
-  initState(){
+  initState() {
     tCon = TextEditingController(text: widget.chat.message);
     super.initState();
   }
@@ -335,7 +382,7 @@ class _ChatEditingDialogState extends State<ChatEditingDialog> {
                   child: TextFormField(
                     maxLines: 5,
                     onFieldSubmitted: (String text) {
-                      widget.chat.updateMessage('[edited message] '+text);
+                      widget.chat.updateMessage('[edited message] ' + text);
                       Navigator.of(context).pop();
                     },
                     controller: tCon,
@@ -354,8 +401,8 @@ class _ChatEditingDialogState extends State<ChatEditingDialog> {
                     Icons.send,
                     color: Colors.redAccent,
                   ),
-                  onPressed: (){
-                    widget.chat.updateMessage('[edited message] '+tCon.text);
+                  onPressed: () {
+                    widget.chat.updateMessage('[edited message] ' + tCon.text);
                     Navigator.of(context).pop();
                   },
                 )
