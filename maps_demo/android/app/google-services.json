@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "626192172396",
+    "project_id": "seldura-map-demo",
+    "storage_bucket": "seldura-map-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:626192172396:android:6aecefba5a8f9af0361f49",
+        "android_client_info": {
+          "package_name": "com.example.maps_demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "626192172396-2esqth5bf00i459ggprrpjna6vkhd25o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPwjceS1mgQskURpGqksCyhbvM8XdVfn0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "626192172396-2esqth5bf00i459ggprrpjna6vkhd25o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
